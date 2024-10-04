@@ -1,3 +1,42 @@
+---
+# Informació general del document
+title: Ud2 - Resolució de Problemes per Mitjà de Cerques
+subtitle: CE Models d'inteligència artificial \newline Curs 2024-2025
+author: Sebastian Ciscar 
+lang: ca
+page-background: img/bg.png
+
+# Portada
+titlepage: true
+titlepage-rule-height: 0
+# titlepage-rule-color: AA0000
+# titlepage-text-color: AA0000
+titlepage-background: img/portada.png
+# logo: img/logotext.png
+
+# Taula de continguts
+toc: true
+toc-own-page: true
+toc-title: Continguts
+
+# Capçaleres i peus
+header-left: Model d'inteligència artificial
+header-right: Curs 2024-2025
+footer-left: IES Jaume II El Just
+footer-right: \thepage/\pageref{LastPage}
+
+# Imatges
+float-placement-figure: H
+caption-justification: centering
+
+# Llistats de codi
+listings-no-page-break: false
+listings-disable-line-numbers: false
+
+header-includes:
+     - \usepackage{lastpage}
+---
+
 # Resolució de Problemes per Mitjà de Cerques
 
 ## Introducció
@@ -74,18 +113,26 @@ Aquest algorisme funciona utilitzant una cua, afegint els nodes fills d'un node 
 **Pseudocodi:**
 
 ```plaintext
-Cerca_en_amplada(estat_inicial):
-  crear cua buida Q
-  afegir estat_inicial a Q
-  mentre Q no està buida:
-    estat_actual = primer de Q
-    si estat_actual és l'estat_objectiu:
-      retornar el camí a estat_actual
-    per cada veí de estat_actual:
-      si veí no està visitat:
-        marcar veí com visitat
-        afegir veí a Q
-  retornar cap_solució
+function GRAPH-SEARCH (problema) return una solució o una fallada
+  Inicialitzar la llista OPEN amb l'estat inicial del problema
+  Inicialitzar la llista CLOSED a buit
+  do
+    if OPEN està buida 
+      then return fallada
+    p <- pop (llista OPEN)
+    afegir p a la llista CLOSED
+    if p = estat final 
+      then return solució p
+    generar fills de p
+    per a cada fill n de p :
+      aplicar f(n)
+      if n no està en CLOSED then
+        if n no està en OPEN o (n està repetit en OPEN i f(n) és millor que el valor del nodeen OPEN) 
+          then inserir n en ordre creixent de f(n) en OPEN*
+      else f(n) és millor que el valor del node repetit en CLOSED 
+        then escollir entre re-expandir n (inserir-ho en OPEN) o descartar-lo
+  enddo
+* Com estem interessats a trobar únicament la primera solució, es pot eliminar n’ de la llista OPEN
 ```
 
 ### Cerca en profunditat
@@ -108,6 +155,30 @@ Cerca_en_profunditat(estat_inicial):
         afegir veí a S
   retornar cap_solució
 ```
+
+#### Cerca en profunditat amb backtracking
+
+La cerca en profunditat amb backtracking és una variant de la cerca en profunditat que permet gestionar l'exploració de l'espai d'estats de manera més eficient. Aquest mètode utilitza una pila per gestionar els nodes a explorar i una llista per emmagatzemar els nodes visitats. Quan es troba una solució, es retrocedeix per trobar altres solucions possibles.
+
+Aquesta tècnica és útil en problemes on hi ha múltiples solucions possibles o on es vol trobar la millor solució. Per exemple, en el problema de les vuit reines, es poden trobar totes les solucions possibles amb aquest mètode.
+
+Pseudocodi:
+```plaintext
+Cerca_en_profunditat_backtracking(estat_inicial):
+  crear pila buida S
+  crear llista buida visitats
+  afegir estat_inicial a S
+  mentre S no està buida:
+    estat_actual = treure de S
+    si estat_actual és l'estat_objectiu:
+      afegir estat_actual a solucions
+    per cada veí de estat_actual:
+      si veí no està en visitats:
+        afegir veí a visitats
+        afegir veí a S
+  retornar solucions
+```
+
 ### Cerca en profunditat limitada
 Aquest tipus de cerca en profunditat imposa un límit a la profunditat que es pot explorar, evitant així caure en cicles infinits. Tot i això, aquest límit pot impedir trobar una solució si aquesta es troba més enllà de la profunditat imposada.
 
@@ -129,6 +200,7 @@ Cerca_en_profunditat_limitada(estat_inicial, límit):
           afegir veí a S amb profunditat profunditat_actual + 1
   retornar cap_solució
 ```
+
 ### Cerca en profunditat iterativa
 La cerca en profunditat iterativa combina els avantatges de la cerca en amplària i en profunditat. Realitza cerques en profunditat amb límits successivament creixents, assegurant que es trobarà la solució més curta.
 
@@ -163,7 +235,7 @@ Això vol dir que per a qualsevol estat, la funció heurística sempre retorna u
 
 Una heurística és consistent si, per a cada estat, la seva estimació no excedeix el cost d'arribar a un estat veí més el cost estimat des d'aquest estat veí fins a la situació objectiu. Les heurístiques consistents garanteixen que la cerca A* sigui òptima i completa.
 
-La consistència implica que la funció heurística h compleix la següent condició per a qualsevol estat n i qualsevol successor n' de n: h(n) ≤ c(n, n') + h(n'), on c(n, n') és el cost d'anar de n a n'. Aquesta propietat assegura que una vegada que un node és expandit, el seu cost total no canviarà.
+La consistència implica que la funció heurística h compleix la següent condició per a qualsevol estat n i qualsevol successor n' de n: h(n) <= c(n, n') + h(n'), on c(n, n') és el cost d'anar de n a n'. Aquesta propietat assegura que una vegada que un node és expandit, el seu cost total no canviarà.
 
 ### Cerca A*
 
@@ -188,3 +260,44 @@ Cerca_A*(estat_inicial, estat_objectiu, heurística):
         afegir veí a Q amb prioritat f(veí)
   retornar cap_solució
 ```
+
+### Distancia de Manhattan
+
+La distància de Manhattan és útil en problemes on els moviments només es poden fer en direccions horitzontals i verticals, com en un tauler de joc o un mapa de ciutat.
+
+La distància Manhattan, també coneguda com a "distància taxicab" o "distància de bloc de ciutat", es calcula com la suma de les diferències absolutes entre les coordenades de dos punts en una quadrícula. És útil quan es pot moure només horitzontalment i verticalment, com és el cas en una ciutat amb carrers ortogonals com Manhattan.
+
+En un mapa bidimensional, la distància de Manhattan entre dos punts (x1, y1) i (x2, y2) es calcula com |x1 - x2| + |y1 - y2|. Aquesta heurística és admissible i consistent, ja que sempre subestima el cost real i compleix la condició de consistència.
+
+Aquest càlcul es pot generalitzar per a qualsevol dimensió, on simplement es sumen les diferències absolutes de les coordenades corresponents de cada dimensió.
+
+A diferència de la distància euclidiana, que mesura la distància més curta en línia recta entre dos punts, la distància Manhattan segueix camins paral·lels a les coordenades, com en un sistema de carrers d'una ciutat. Aquesta distància és molt utilitzada en aplicacions de ciències de dades, reconeixement de patrons i en jocs com el "Snake", on els moviments són limitats a direccions ortogonals.
+
+![Distancia manhatan](img/Manhattan_distance.png)
+
+
+## Conclusió
+
+| **Algorisme**                 | **Aplicació**                                                     | **Complexitat Temporal**             | **Avantatges**                                                       | **Inconvenients**                                                   |
+|-------------------------------|-------------------------------------------------------------------|--------------------------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|
+| **BFS (Breadth-First Search)** | - Cerca en amplària per grafos no ponderats                      | O(V + E)                             | - Troba el camí més curt en grafos no ponderats                       | - No pot manejar grafos ponderats                                   |
+|                               | - Detecció de cicles en grafos no dirigits                       |                                      | - Simple d'implementar                                                | - Pot ser costós en termes de memòria                               |
+|                               | - Cerca de camins mínims en laberints                             |                                      | - Garanteix trobar la solució més curta en grafos no ponderats        | - Requereix més memòria que DFS                                     |
+|                               | - Generació d'arbre mínim en grafos no ponderats                  |                                      |                                                                      |                                                                      |
+| **DFS (Depth-First Search)**   | - Cerca en profunditat per detectar cicles o components connectats| O(V + E)                             | - Menys memòria que BFS                                               | - No garanteix camí més curt                                        |
+|                               | - Ordenació topològica                                            |                                      | - Apte per a recórrer tot el grafo                                    | - Pot quedar-se en bucles infinits sense mecanismes de prevenció    |
+|                               | - Cerca en puzzles com el Sudoku o problemes de coloració         |                                      | - Funciona bé amb profunditats limitades                              | - Pot trobar solucions subòptimes en grafos grans                   |
+|                               | - Detecció de connexions fortament connectades                    |                                      |                                                                      |                                                                      |
+| **Profunditat Iterativa**      | - Cerca combinant els avantatges de DFS i BFS                    | O(b^d), on b és el factor de ramificació i d la profunditat del node  | - Eficient en espai com DFS, però més complet com BFS                 | - Pot explorar nodes repetidament                                   |
+|                               | - Resolució de problemes on no es coneix la profunditat de la solució |                                  | - No requereix estimar la profunditat màxima                          | - Més lent que BFS per a grafos grans                               |
+|                               | - Cerca de solucions en problemes de jocs (com damuntes o escacs)  |                                      | - Troba solucions en jocs on la profunditat òptima no es coneix       | - Exploració repetida de nodes                                      |
+| **A***                        | - Cerca del camí òptim utilitzant una funció heurística           | O(b^d), on b és el factor de ramificació i d la profunditat del node  | - Eficient si es tria una bona heurística                            | - Difícil de definir una heurística adequada                       |
+|                               | - Cerca de camí més curt en problemes de navegació                |                                      | - Troba el camí més curt si la heurística és admissible               | - Pitjor rendiment amb heurístiques mal dissenyades                 |
+|                               | - Cerca de camins en mapes amb obstacles (per exemple, en robots) |                                      | - Molt utilitzat en IA i videojocs per trobar el camí òptim           | - Més costós en termes de càlcul que BFS o DFS                      |
+|                               | - Resolució de problemes de rutes òptimes en logística            |                                      |                                                                      |                                                                      |
+
+### Llegend:
+- **V**: Nombre de nodes (vèrtexs).
+- **E**: Nombre d'arestes (arestes).
+- **b**: Factor de ramificació.
+- **d**: Profunditat del node objectiu.
